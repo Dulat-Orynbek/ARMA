@@ -1,0 +1,23 @@
+require('quantmod')
+getSymbols('AAPL', src = "yahoo")
+acf(Ad(AAPL))
+log_rets = diff(log(Ad(AAPL)))
+acf(log_rets, na.action = na.omit)
+solution.aic <- Inf
+solution.order <- c(0,0,0)
+for(i in 1:4) for(j in 1:4){
+  actual.aic <- AIC(arima(log_rets, order = c(i,0,j), optim.control = list(maxit = 1000)))
+  
+  if(actual.aic<solution.aic){
+    solution.aic <- actual.aic
+    solution.order <- c(i, 0, j)
+    solution.arma <- arima(log_rets, order = solution.order, optim.control = list(maxit = 1000))
+  } 
+}
+
+solution.aic
+solution.order
+solution.arma
+
+acf(resid(solution.arma), na.action = na.omit)
+Box.test(resid(solution.arma), lag = 20, type = "Ljung-Box")
